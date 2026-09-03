@@ -16,6 +16,8 @@
     --green: #1f7a4d;
     --green-soft: #e4f3ea;
     --lime: #b8e986;
+    --demo: #0f5c8c;
+    --demo-soft: #e0eef7;
     --amber: #f4c95d;
     --amber-soft: #fdf3d6;
     --red: #d9534f;
@@ -47,11 +49,16 @@
   /* Liste – kompakt, eine Zeile pro Firma */
   main { max-width: 1280px; margin: 0 auto; padding: 12px 20px 80px; }
   .count { color: var(--ink-dim); font-size: 14px; margin: 0 0 8px; }
-  .hdr, .row { display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(110px, .8fr) minmax(120px, .9fr) 150px minmax(130px, .9fr) minmax(180px, 1.6fr); gap: 6px 10px; align-items: center; }
+  .hdr, .row { display: grid; grid-template-columns: 22px minmax(180px, 1.4fr) minmax(110px, .8fr) minmax(120px, .9fr) 150px minmax(130px, .9fr) minmax(180px, 1.6fr); gap: 6px 10px; align-items: center; }
   .hdr { padding: 0 10px 6px; font-size: 13px; color: var(--ink-dim); }
   .row { background: var(--sheet); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 6px; padding: 6px 10px; margin-bottom: 4px; }
   .row.s-erreicht { border-left-color: var(--green); }
   .row.s-nochmals { border-left-color: var(--amber); }
+  .row.s-demo { border-left-color: var(--demo); background: var(--demo-soft); }
+  .row.s-uebergeben { border-left-color: var(--demo); }
+  .row select.st-demo, .row select.st-uebergeben { background: var(--demo); color: #fff; border-color: var(--demo); font-weight: 600; }
+  .row .demo-date { grid-column: 5 / -1; display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--demo); }
+  .row .demo-date input { width: auto; }
   .row.s-kein { border-left-color: var(--red); opacity: .75; }
   .row.s-ignoriert { border-left-color: var(--ink-dim); opacity: .5; }
   .row .name { font-weight: 600; font-size: 15px; line-height: 1.25; }
@@ -64,14 +71,21 @@
   .row select.st-nochmals { background: var(--amber-soft); color: #7a5a00; border-color: var(--amber); }
   .row select.st-kein { background: var(--red-soft); color: var(--red); border-color: var(--red); }
   .row select.st-ignoriert { background: var(--line); color: var(--ink-dim); }
+  .row .demo-date { grid-column: 6 / -1; }
+  .hdr input, .row input[type=checkbox] { width: 16px; height: 16px; min-height: 0; margin: 0; padding: 0; accent-color: var(--green); }
+  .bulk { position: sticky; bottom: 0; z-index: 4; background: var(--ink); color: #fff; border-radius: 8px; padding: 10px 14px; margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 14px; }
+  .bulk select { font: inherit; padding: 6px 8px; border-radius: 6px; border: 0; }
+  .bulk button { font: inherit; background: var(--lime); color: var(--ink); border: 0; border-radius: 6px; padding: 6px 12px; font-weight: 600; }
+  .bulk .x { background: transparent; color: #fff; border: 1px solid #ffffff55; font-weight: 400; margin-left: auto; }
   .row .meta { grid-column: 1 / -1; font-size: 12px; color: var(--ink-dim); display: none; }
   .row .meta.saving, .row .meta.saved, .row .meta.err { display: block; }
   .row .meta.saved { color: var(--green); }
   .row .meta.err { color: var(--red); }
   @media (max-width: 900px) {
     .hdr { display: none; }
-    .row { grid-template-columns: 1fr 1fr; }
-    .row .name, .row .web { grid-column: 1 / -1; }
+    .row { grid-template-columns: 22px 1fr 1fr; }
+    .row .name, .row .web { grid-column: 2 / -1; }
+    .row .demo-date { grid-column: 2 / -1; }
     .row .name { font-size: 16px; }
   }
 
@@ -111,6 +125,7 @@
         <button data-f="offen" aria-pressed="false">Offen</button>
         <button data-f="nochmals" aria-pressed="false">Nochmals</button>
         <button data-f="erledigt" aria-pressed="false">Erledigt</button>
+        <button data-f="demo" aria-pressed="false">Demos</button>
         <button data-f="ignoriert" aria-pressed="false">Ignoriert</button>
       </div>
     </div>
@@ -119,8 +134,14 @@
   <main>
     <div class="error hidden" id="app-error"></div>
     <p class="count" id="count"></p>
-    <div class="hdr" id="hdr"><span>Firma</span><span>Region · Ort</span><span>Website</span><span>Status</span><span>Ansprechperson</span><span>Kommentar</span></div>
+    <div class="hdr" id="hdr"><input type="checkbox" id="selall" title="Alle angezeigten auswählen"><span>Firma</span><span>Region · Ort</span><span>Website</span><span>Status</span><span>Ansprechperson</span><span>Kommentar</span></div>
     <div id="list"></div>
+    <div class="bulk hidden" id="bulk">
+      <span id="bulk-n"></span>
+      <select id="bulk-status"></select>
+      <button onclick="bulkApply()">Auf alle anwenden</button>
+      <button class="x" onclick="clearSel()">Auswahl aufheben</button>
+    </div>
     <div class="admin hidden" id="admin">
       <span>Liste verwalten:</span>
       <label>Excel importieren <input type="file" id="xlsx" accept=".xlsx,.xls,.csv" class="hidden"></label>
@@ -151,6 +172,8 @@ const CONFIG = {
 const STATUS = [
   ["offen",    "Offen"],
   ["erreicht", "Erreicht"],
+  ["demo",     "Demo vereinbart!"],
+  ["uebergeben","An Apriko übergeben"],
   ["nochmals", "Nochmals anrufen"],
   ["kein",     "Kein Interesse"],
   ["ignoriert","Ignorieren"]
@@ -253,8 +276,9 @@ function visible() {
     const s = c.status || "offen";
     if (filter === "offen" && s !== "offen") return false;
     if (filter === "nochmals" && s !== "nochmals") return false;
-    if (filter === "erledigt" && !(s === "erreicht" || s === "kein")) return false;
+    if (filter === "erledigt" && !(s === "erreicht" || s === "kein" || s === "demo" || s === "uebergeben")) return false;
     if (filter === "ignoriert" && s !== "ignoriert") return false;
+    if (filter === "demo" && !(s === "demo" || s === "uebergeben")) return false;
     if (filter === "alle" && s === "ignoriert") return false;
     if (!q) return true;
     return [c.name, c.city, c.region, c.id, c.comment, c.contact].some(v => String(v ?? "").toLowerCase().includes(q));
@@ -265,7 +289,8 @@ function render() {
   const all = data.companies, done = all.filter(c => c.status && c.status !== "offen").length;
   $("prog").style.width = all.length ? (100 * done / all.length) + "%" : "0";
   const rows = visible();
-  $("count").textContent = all.length ? `${rows.length} von ${all.length} Firmen · ${done} bearbeitet` : "";
+  const demos = all.filter(c => c.status === "demo" || c.status === "uebergeben").length;
+  $("count").textContent = all.length ? `${rows.length} von ${all.length} Firmen · ${done} bearbeitet · ${demos} Demo${demos === 1 ? "" : "s"}` : "";
   const list = $("list");
   if (!all.length) {
     list.innerHTML = `<div class="empty"><p>Noch keine Firmen in der Liste.</p>${isAdmin() ? "<p>Importiere unten das Excel mit den Firmen.</p>" : "<p>Bitte bei Apriko melden – die Liste wurde noch nicht hochgeladen.</p>"}</div>`;
@@ -278,20 +303,52 @@ function render() {
     const web = c.website ? `<a class="web" href="${esc(/^https?:/i.test(c.website) ? c.website : "http://" + c.website)}" target="_blank" rel="noopener" title="${esc(c.website)}">${esc(c.website.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, ""))}</a>` : "<span></span>";
     const meta = c.updatedBy ? esc(c.updatedBy) + ", " + new Date(c.updatedAt).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" }) : "";
     return `<div class="row s-${s}" data-id="${esc(c.id)}" title="${meta}">
+      <input type="checkbox" ${sel.has(String(c.id)) ? "checked" : ""} onchange="toggleSel('${esc(c.id)}', this.checked)">
       <div><span class="name">${esc(c.name)}</span><span class="id">${esc(c.id)}</span></div>
       <div class="ort">${esc(ort)}</div>${web}
       <select class="st-${s}" onchange="setStatus('${esc(c.id)}', this.value)">${STATUS.map(([k, l]) => `<option value="${k}"${s === k ? " selected" : ""}>${l}</option>`).join("")}</select>
       <input type="text" placeholder="Name der Ansprechperson" value="${esc(c.contact)}" onblur="setField('${esc(c.id)}','contact',this.value)">
       <input type="text" placeholder="Kommentar zum Gespräch" value="${esc(c.comment)}" onblur="setField('${esc(c.id)}','comment',this.value)">
+      ${(s === "demo" || s === "uebergeben") ? `<div class="demo-date"><span>Demo am</span><input type="datetime-local" value="${esc(c.demoAt)}" onchange="setField('${esc(c.id)}','demoAt',this.value)"><span>${s === "demo" ? "→ Apriko meldet sich zur Übernahme" : "✓ übernommen"}</span></div>` : ""}
       <div class="meta"></div>
     </div>`;
   }).join("") || `<div class="empty"><p>Keine Firma passt zu Suche und Filter.</p></div>`;
+  updateBulk();
+}
+
+/* ---------- Mehrfachauswahl / Massenaktion ---------- */
+const sel = new Set();
+function toggleSel(id, on) { on ? sel.add(String(id)) : sel.delete(String(id)); updateBulk(); }
+function clearSel() { sel.clear(); render(); }
+function updateBulk() {
+  const vis = visible();
+  $("selall").checked = vis.length > 0 && vis.every(c => sel.has(String(c.id)));
+  $("bulk").classList.toggle("hidden", sel.size === 0);
+  $("bulk-n").textContent = sel.size + (sel.size === 1 ? " Firma ausgewählt:" : " Firmen ausgewählt:");
+}
+$("selall").addEventListener("change", e => {
+  visible().forEach(c => e.target.checked ? sel.add(String(c.id)) : sel.delete(String(c.id)));
+  render();
+});
+$("bulk-status").innerHTML = STATUS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
+$("bulk-status").value = "ignoriert";
+async function bulkApply() {
+  const st = $("bulk-status").value, ids = new Set(sel);
+  $("bulk-n").textContent = "Speichern …";
+  try {
+    const fresh = await loadData();
+    const who = account.name || account.username, now = new Date().toISOString();
+    fresh.companies.forEach(c => { if (ids.has(String(c.id))) Object.assign(c, { status: st, updatedBy: who, updatedAt: now }); });
+    await saveData(fresh);
+    data = fresh; sel.clear(); render();
+  } catch (e) { showError("Massenaktion nicht gespeichert: " + e.message); updateBulk(); }
 }
 
 /* Speichern: immer frisch laden, nur die eine Firma ändern, zurückschreiben */
 let saveChain = Promise.resolve();
 function persist(id, patch) {
-  const row = document.querySelector(`.row[data-id="${CSS.escape(id)}"]`), meta = row?.querySelector(".meta");
+  const metaEl = () => document.querySelector(`.row[data-id="${CSS.escape(id)}"] .meta`);
+  let meta = metaEl();
   if (meta) { meta.textContent = "Speichern …"; meta.className = "meta saving"; }
   saveChain = saveChain.then(async () => {
     try {
@@ -300,12 +357,14 @@ function persist(id, patch) {
       if (!c) throw new Error("Firma nicht mehr in der Liste");
       Object.assign(c, patch, { updatedBy: account.name || account.username, updatedAt: new Date().toISOString() });
       await saveData(fresh);
-      data = fresh;
+      data = fresh; meta = metaEl();
       if (meta) { meta.textContent = "Gespeichert"; meta.className = "meta saved"; }
       const all = data.companies, done = all.filter(x => x.status && x.status !== "offen").length;
       $("prog").style.width = (100 * done / all.length) + "%";
-      $("count").textContent = `${visible().length} von ${all.length} Firmen · ${done} bearbeitet`;
+      const demos = all.filter(x => x.status === "demo" || x.status === "uebergeben").length;
+      $("count").textContent = `${visible().length} von ${all.length} Firmen · ${done} bearbeitet · ${demos} Demo${demos === 1 ? "" : "s"}`;
     } catch (e) {
+      meta = metaEl();
       if (meta) { meta.textContent = "Nicht gespeichert: " + e.message; meta.className = "meta err"; }
     }
   });
@@ -317,6 +376,7 @@ function setStatus(id, s) {
   row.className = "row s-" + s;
   row.querySelector("select").className = "st-" + s;
   persist(id, { status: s });
+  if (s === "demo" || s === "uebergeben" || row.querySelector(".demo-date")) render();
 }
 function setField(id, k, v) {
   const c = data.companies.find(x => String(x.id) === String(id)); if (!c) return;
@@ -358,7 +418,7 @@ $("xlsx").addEventListener("change", async e => {
   e.target.value = "";
 });
 function exportCsv() {
-  const cols = ["id", "name", "region", "city", "website", "status", "contact", "comment", "updatedBy", "updatedAt"];
+  const cols = ["id", "name", "region", "city", "website", "status", "demoAt", "contact", "comment", "updatedBy", "updatedAt"];
   const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
   const csv = [cols.join(";"), ...data.companies.map(c => cols.map(k => q(c[k])).join(";"))].join("\r\n");
   const a = document.createElement("a");
