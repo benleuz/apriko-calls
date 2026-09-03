@@ -146,6 +146,7 @@
       <span>Liste verwalten:</span>
       <label>Excel importieren <input type="file" id="xlsx" accept=".xlsx,.xls,.csv" class="hidden"></label>
       <button onclick="exportCsv()">Kommentare als CSV</button>
+      <a id="folder-link" href="#" target="_blank" rel="noopener" class="hidden">Datenordner in OneDrive öffnen</a>
       <span id="admin-info"></span>
     </div>
   </main>
@@ -230,7 +231,7 @@ async function resolveFolder() {
   if (CONFIG.folderUrl) {
     const enc = "u!" + btoa(CONFIG.folderUrl).replace(/=+$/, "").replace(/\//g, "_").replace(/\+/g, "-");
     const item = await graph(`/shares/${enc}/driveItem`);
-    folder = { driveId: item.parentReference.driveId, itemId: item.id };
+    folder = { driveId: item.parentReference.driveId, itemId: item.id, webUrl: item.webUrl };
   } else {
     const drive = await graph(`/me/drive`);
     let item;
@@ -239,7 +240,7 @@ async function resolveFolder() {
       item = await graph(`/me/drive/root/children`, { method: "POST",
         body: JSON.stringify({ name: CONFIG.folderName, folder: {}, "@microsoft.graph.conflictBehavior": "fail" }) });
     }
-    folder = { driveId: drive.id, itemId: item.id };
+    folder = { driveId: drive.id, itemId: item.id, webUrl: item.webUrl };
   }
 }
 const filePath = () => `/drives/${folder.driveId}/items/${folder.itemId}:/${encodeURIComponent(CONFIG.fileName)}:/content`;
@@ -265,7 +266,10 @@ async function startApp() {
   $("gate").classList.add("hidden"); $("app").classList.remove("hidden");
   $("who").textContent = account.name || account.username;
   if (isAdmin()) $("admin").classList.remove("hidden");
-  try { await resolveFolder(); data = await loadData(); }
+  try {
+    await resolveFolder(); data = await loadData();
+    if (folder.webUrl) { $("folder-link").href = folder.webUrl; $("folder-link").classList.remove("hidden"); }
+  }
   catch (e) { showError("Liste konnte nicht geladen werden.\n" + e.message + "\n\nIst der OneDrive-Ordner mit dir geteilt und die folderUrl korrekt?"); }
   render();
 }
