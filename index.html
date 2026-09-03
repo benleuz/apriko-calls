@@ -44,30 +44,36 @@
   .progress { height: 4px; background: var(--line); }
   .progress > div { height: 100%; background: var(--green); width: 0; transition: width .3s; }
 
-  /* Liste */
-  main { max-width: 960px; margin: 0 auto; padding: 16px 20px 80px; }
-  .count { color: var(--ink-dim); font-size: 14px; margin: 0 0 10px; }
-  .row { background: var(--sheet); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; }
+  /* Liste – kompakt, eine Zeile pro Firma */
+  main { max-width: 1280px; margin: 0 auto; padding: 12px 20px 80px; }
+  .count { color: var(--ink-dim); font-size: 14px; margin: 0 0 8px; }
+  .hdr, .row { display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(110px, .8fr) minmax(120px, .9fr) 150px minmax(130px, .9fr) minmax(180px, 1.6fr); gap: 6px 10px; align-items: center; }
+  .hdr { padding: 0 10px 6px; font-size: 13px; color: var(--ink-dim); }
+  .row { background: var(--sheet); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 6px; padding: 6px 10px; margin-bottom: 4px; }
   .row.s-erreicht { border-left-color: var(--green); }
   .row.s-nochmals { border-left-color: var(--amber); }
   .row.s-kein { border-left-color: var(--red); opacity: .75; }
-  .row .head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-  .row .name { font-size: 19px; font-weight: 600; letter-spacing: -.01em; }
-  .row .id { font-family: var(--mono); font-size: 13px; color: var(--ink-dim); }
-  .row .ort { color: var(--ink-dim); font-size: 15px; }
-  .row .web { font-size: 15px; word-break: break-all; }
-  .row .status { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
-  .row .status button { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 6px 12px; font-size: 14px; color: var(--ink-dim); }
-  .row .status button[aria-pressed=true][data-s=erreicht] { background: var(--green-soft); border-color: var(--green); color: var(--green); }
-  .row .status button[aria-pressed=true][data-s=nochmals] { background: var(--amber-soft); border-color: var(--amber); color: #7a5a00; }
-  .row .status button[aria-pressed=true][data-s=kein] { background: var(--red-soft); border-color: var(--red); color: var(--red); }
-  .row .status button[aria-pressed=true][data-s=offen] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .row textarea { grid-column: 1 / -1; width: 100%; min-height: 44px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: var(--paper); font-size: 16px; }
-  .row textarea:focus { background: var(--sheet); }
-  .row .meta { grid-column: 1 / -1; font-size: 13px; color: var(--ink-dim); min-height: 1.2em; }
-  .row .meta.saving { color: var(--ink-dim); }
+  .row.s-ignoriert { border-left-color: var(--ink-dim); opacity: .5; }
+  .row .name { font-weight: 600; font-size: 15px; line-height: 1.25; }
+  .row .id { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); display: block; }
+  .row .ort { color: var(--ink-dim); font-size: 14px; }
+  .row .web { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row select, .row input { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--paper); font-size: 14px; min-height: 34px; }
+  .row select:focus, .row input:focus { background: var(--sheet); }
+  .row select.st-erreicht { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+  .row select.st-nochmals { background: var(--amber-soft); color: #7a5a00; border-color: var(--amber); }
+  .row select.st-kein { background: var(--red-soft); color: var(--red); border-color: var(--red); }
+  .row select.st-ignoriert { background: var(--line); color: var(--ink-dim); }
+  .row .meta { grid-column: 1 / -1; font-size: 12px; color: var(--ink-dim); display: none; }
+  .row .meta.saving, .row .meta.saved, .row .meta.err { display: block; }
   .row .meta.saved { color: var(--green); }
   .row .meta.err { color: var(--red); }
+  @media (max-width: 900px) {
+    .hdr { display: none; }
+    .row { grid-template-columns: 1fr 1fr; }
+    .row .name, .row .web { grid-column: 1 / -1; }
+    .row .name { font-size: 16px; }
+  }
 
   /* Login / Leerzustand */
   .gate { max-width: 420px; margin: 18vh auto; padding: 0 20px; text-align: center; }
@@ -80,7 +86,6 @@
   .admin { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 14px; color: var(--ink-dim); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .admin button, .admin label { border: 1px solid var(--line); background: var(--sheet); border-radius: 6px; padding: 6px 10px; color: var(--ink); cursor: pointer; }
   .hidden { display: none !important; }
-  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } .row .name { font-size: 18px; } }
   @media (prefers-reduced-motion: reduce) { .progress > div { transition: none; } }
 </style>
 </head>
@@ -106,6 +111,7 @@
         <button data-f="offen" aria-pressed="false">Offen</button>
         <button data-f="nochmals" aria-pressed="false">Nochmals</button>
         <button data-f="erledigt" aria-pressed="false">Erledigt</button>
+        <button data-f="ignoriert" aria-pressed="false">Ignoriert</button>
       </div>
     </div>
     <div class="progress"><div id="prog"></div></div>
@@ -113,6 +119,7 @@
   <main>
     <div class="error hidden" id="app-error"></div>
     <p class="count" id="count"></p>
+    <div class="hdr" id="hdr"><span>Firma</span><span>Region · Ort</span><span>Website</span><span>Status</span><span>Ansprechperson</span><span>Kommentar</span></div>
     <div id="list"></div>
     <div class="admin hidden" id="admin">
       <span>Liste verwalten:</span>
@@ -145,7 +152,8 @@ const STATUS = [
   ["offen",    "Offen"],
   ["erreicht", "Erreicht"],
   ["nochmals", "Nochmals anrufen"],
-  ["kein",     "Kein Interesse"]
+  ["kein",     "Kein Interesse"],
+  ["ignoriert","Ignorieren"]
 ];
 
 /* ---------- MSAL ---------- */
@@ -245,9 +253,11 @@ function visible() {
     const s = c.status || "offen";
     if (filter === "offen" && s !== "offen") return false;
     if (filter === "nochmals" && s !== "nochmals") return false;
-    if (filter === "erledigt" && (s === "offen" || s === "nochmals")) return false;
+    if (filter === "erledigt" && !(s === "erreicht" || s === "kein")) return false;
+    if (filter === "ignoriert" && s !== "ignoriert") return false;
+    if (filter === "alle" && s === "ignoriert") return false;
     if (!q) return true;
-    return [c.name, c.city, c.region, c.id, c.comment].some(v => String(v ?? "").toLowerCase().includes(q));
+    return [c.name, c.city, c.region, c.id, c.comment, c.contact].some(v => String(v ?? "").toLowerCase().includes(q));
   });
 }
 
@@ -261,16 +271,19 @@ function render() {
     list.innerHTML = `<div class="empty"><p>Noch keine Firmen in der Liste.</p>${isAdmin() ? "<p>Importiere unten das Excel mit den Firmen.</p>" : "<p>Bitte bei Apriko melden – die Liste wurde noch nicht hochgeladen.</p>"}</div>`;
     return;
   }
+  $("hdr").classList.toggle("hidden", !rows.length);
   list.innerHTML = rows.map(c => {
     const s = c.status || "offen";
     const ort = [c.region, c.city].filter(Boolean).join(" · ");
-    const web = c.website ? `<a class="web" href="${esc(/^https?:/i.test(c.website) ? c.website : "http://" + c.website)}" target="_blank" rel="noopener">${esc(c.website.replace(/^https?:\/\//i, ""))}</a>` : "";
-    return `<div class="row s-${s}" data-id="${esc(c.id)}">
-      <div class="head"><span class="name">${esc(c.name)}</span><span class="id">${esc(c.id)}</span></div>
+    const web = c.website ? `<a class="web" href="${esc(/^https?:/i.test(c.website) ? c.website : "http://" + c.website)}" target="_blank" rel="noopener" title="${esc(c.website)}">${esc(c.website.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, ""))}</a>` : "<span></span>";
+    const meta = c.updatedBy ? esc(c.updatedBy) + ", " + new Date(c.updatedAt).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" }) : "";
+    return `<div class="row s-${s}" data-id="${esc(c.id)}" title="${meta}">
+      <div><span class="name">${esc(c.name)}</span><span class="id">${esc(c.id)}</span></div>
       <div class="ort">${esc(ort)}</div>${web}
-      <div class="status">${STATUS.map(([k, l]) => `<button data-s="${k}" aria-pressed="${s === k}" onclick="setStatus('${esc(c.id)}','${k}')">${l}</button>`).join("")}</div>
-      <textarea placeholder="Kommentar zum Gespräch …" onblur="setComment('${esc(c.id)}', this.value)">${esc(c.comment)}</textarea>
-      <div class="meta">${c.updatedBy ? esc(c.updatedBy) + ", " + new Date(c.updatedAt).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
+      <select class="st-${s}" onchange="setStatus('${esc(c.id)}', this.value)">${STATUS.map(([k, l]) => `<option value="${k}"${s === k ? " selected" : ""}>${l}</option>`).join("")}</select>
+      <input type="text" placeholder="Name der Ansprechperson" value="${esc(c.contact)}" onblur="setField('${esc(c.id)}','contact',this.value)">
+      <input type="text" placeholder="Kommentar zum Gespräch" value="${esc(c.comment)}" onblur="setField('${esc(c.id)}','comment',this.value)">
+      <div class="meta"></div>
     </div>`;
   }).join("") || `<div class="empty"><p>Keine Firma passt zu Suche und Filter.</p></div>`;
 }
@@ -302,18 +315,19 @@ function setStatus(id, s) {
   c.status = s;
   const row = document.querySelector(`.row[data-id="${CSS.escape(id)}"]`);
   row.className = "row s-" + s;
-  row.querySelectorAll(".status button").forEach(b => b.setAttribute("aria-pressed", b.dataset.s === s));
+  row.querySelector("select").className = "st-" + s;
   persist(id, { status: s });
 }
-function setComment(id, v) {
+function setField(id, k, v) {
   const c = data.companies.find(x => String(x.id) === String(id)); if (!c) return;
-  if ((c.comment || "") === v) return;
-  c.comment = v;
-  persist(id, { comment: v });
+  if ((c[k] || "") === v) return;
+  c[k] = v;
+  persist(id, { [k]: v });
 }
 
 /* ---------- Suche / Filter ---------- */
 $("q").addEventListener("input", e => { query = e.target.value; render(); });
+$("list").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.target.blur(); });
 $("filt").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   filter = b.dataset.f;
@@ -335,7 +349,7 @@ $("xlsx").addEventListener("change", async e => {
       if (!id && !name) continue;
       const rec = { id: id || name, name, region: key(r, "region"), city: key(r, "city", "ort"), website: key(r, "website") };
       const ex = byId.get(String(rec.id));
-      if (ex) { Object.assign(ex, rec); updated++; } else { data.companies.push({ ...rec, status: "offen", comment: "" }); added++; }
+      if (ex) { Object.assign(ex, rec); updated++; } else { data.companies.push({ ...rec, status: "offen", contact: "", comment: "" }); added++; }
     }
     await saveData(data);
     $("admin-info").textContent = `${added} neu, ${updated} aktualisiert`;
@@ -344,7 +358,7 @@ $("xlsx").addEventListener("change", async e => {
   e.target.value = "";
 });
 function exportCsv() {
-  const cols = ["id", "name", "region", "city", "website", "status", "comment", "updatedBy", "updatedAt"];
+  const cols = ["id", "name", "region", "city", "website", "status", "contact", "comment", "updatedBy", "updatedAt"];
   const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
   const csv = [cols.join(";"), ...data.companies.map(c => cols.map(k => q(c[k])).join(";"))].join("\r\n");
   const a = document.createElement("a");
